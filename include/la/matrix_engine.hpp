@@ -67,7 +67,7 @@ struct fixed_matrix_engine {
         detail::copy_matrix_engine(*this, other);
     }
 
-    fixed_matrix_engine(std::initializer_list<std::initializer_list<value_type>> lst) {
+    constexpr fixed_matrix_engine(std::initializer_list<std::initializer_list<value_type>> lst) {
         detail::check_init_list(lst, rows(), cols());
         detail::copy_matrix_engine(*this, lst);
     }
@@ -83,37 +83,45 @@ struct fixed_matrix_engine {
 
     constexpr fixed_matrix_engine &operator=(fixed_matrix_engine const &) = default;
 
-    constexpr reference operator[](size_type idx) {
-        return m_data[idx]; // no bound checking here
+    constexpr reference operator[](size_type idx) noexcept {
+        return m_data[idx];
     }
 
-    constexpr const_reference operator[](size_type idx) const {
-        return m_data[idx]; // no bound checking here
+    constexpr const_reference operator[](size_type idx) const noexcept {
+        return m_data[idx];
     }
 
-    constexpr reference operator()(size_type r, size_type c) {
+    constexpr reference operator()(size_type r, size_type c) noexcept {
         return m_data[c + r * cols()];
     }
 
-    constexpr const_reference operator()(size_type r, size_type c) const {
+    constexpr const_reference operator()(size_type r, size_type c) const noexcept {
         return m_data[c + r * cols()];
     }
 
-    [[nodiscard]] constexpr size_type rows() const {
+    [[nodiscard]] constexpr size_type rows() const noexcept {
         return m_rows;
     }
 
-    [[nodiscard]] constexpr size_type cols() const {
+    [[nodiscard]] constexpr size_type cols() const noexcept {
         return m_cols;
     }
 
-    [[nodiscard]] constexpr size_type data_size() noexcept {
+    [[nodiscard]] constexpr size_type data_size() const noexcept {
         return m_data.size();
     }
 
-    [[nodiscard]] constexpr bool empty() const {
+    [[nodiscard]] constexpr bool empty() const noexcept {
         return m_data.empty();
     }
+
+    constexpr pointer data() noexcept { return m_data.data(); }
+    constexpr const_pointer data() const noexcept { return m_data.data(); }
+
+    constexpr iterator begin() noexcept { return m_data.begin(); }
+    constexpr iterator end() noexcept { return m_data.end(); }
+    constexpr const_iterator begin() const noexcept { return m_data.begin(); }
+    constexpr const_iterator end() const noexcept { return m_data.end(); }
 
     static constexpr size_type m_rows{R};
     static constexpr size_type m_cols{C};
@@ -203,11 +211,11 @@ struct dynamic_matrix_engine {
     }
 
     reference operator[](size_type idx) noexcept {
-        return m_data[idx]; // no bound checking here
+        return m_data[idx];
     }
 
     const_reference operator[](size_type idx) const noexcept {
-        return m_data[idx]; // no bound checking here
+        return m_data[idx];
     }
 
     reference operator()(size_type r, size_type c) noexcept {
@@ -232,9 +240,17 @@ struct dynamic_matrix_engine {
         m_cols = c;
     }
 
-    [[nodiscard]] constexpr bool empty() const {
+    [[nodiscard]] bool empty() const noexcept {
         return m_data.empty();
     }
+
+    pointer data() noexcept { return m_data.data(); }
+    const_pointer data() const noexcept { return m_data.data(); }
+
+    iterator begin() noexcept { return m_data.begin(); }
+    iterator end() noexcept { return m_data.end(); }
+    const_iterator begin() const noexcept { return m_data.begin(); }
+    const_iterator end() const noexcept { return m_data.end(); }
 
     size_type m_rows;
     size_type m_cols;

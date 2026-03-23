@@ -6,7 +6,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef L_VECTOR_ENGINE_H
+#ifndef LA_VECTOR_ENGINE_H
 #define LA_VECTOR_ENGINE_H
 
 #include <cstddef>
@@ -83,37 +83,29 @@ struct fixed_vector_engine {
 
     constexpr fixed_vector_engine &operator=(fixed_vector_engine const &) = default;
 
-    constexpr reference operator[](size_type idx) {
-        return m_data[idx]; // no bound checking here
+    constexpr reference operator[](size_type idx) noexcept {
+        return m_data[idx];
     }
 
-    constexpr const_reference operator[](size_type idx) const {
-        return m_data[idx]; // no bound checking here
+    constexpr const_reference operator[](size_type idx) const noexcept {
+        return m_data[idx];
     }
 
-    [[nodiscard]] constexpr size_type size() const {
+    [[nodiscard]] constexpr size_type size() const noexcept {
         return m_data.size();
     }
 
-    [[nodiscard]] constexpr bool empty() const {
+    [[nodiscard]] constexpr bool empty() const noexcept {
         return m_data.empty();
     }
 
-    constexpr auto begin() noexcept {
-        return m_data.begin();
-    }
+    constexpr pointer data() noexcept { return m_data.data(); }
+    constexpr const_pointer data() const noexcept { return m_data.data(); }
 
-    constexpr auto end() noexcept {
-        return m_data.end();
-    }
-
-    constexpr auto begin() const noexcept {
-        return m_data.begin();
-    }
-
-    constexpr auto end() const noexcept {
-        return m_data.end();
-    }
+    constexpr auto begin() noexcept { return m_data.begin(); }
+    constexpr auto end() noexcept { return m_data.end(); }
+    constexpr auto begin() const noexcept { return m_data.begin(); }
+    constexpr auto end() const noexcept { return m_data.end(); }
 
     static constexpr size_type m_elems{N};
 
@@ -163,17 +155,16 @@ struct dynamic_vector_engine {
 
 
     template<class Engine2>
-    constexpr dynamic_vector_engine(const Engine2 &other): m_elems{other.size()}, m_data(m_elems) {
+    constexpr dynamic_vector_engine(const Engine2 &other): m_data(other.size()) {
         detail::copy_vector_engine(*this, other);
     }
 
     template<typename U>
-    dynamic_vector_engine(std::initializer_list<U> lst) : m_elems{lst.size()},
-                                                          m_data(m_elems) {
+    dynamic_vector_engine(std::initializer_list<U> lst) : m_data(lst.size()) {
         detail::copy_vector_engine(*this, lst);
     }
 
-    explicit dynamic_vector_engine(size_type n) : m_elems{n}, m_data(m_elems) {
+    explicit dynamic_vector_engine(size_type n) : m_data(n) {
     };
 
     constexpr dynamic_vector_engine &operator=(dynamic_vector_engine &&) noexcept = default;
@@ -205,26 +196,16 @@ struct dynamic_vector_engine {
 
     void resize(size_type elems) {
         m_data.resize(elems);
-        m_elems = elems;
     }
 
-    auto begin() noexcept {
-        return m_data.begin();
-    }
+    pointer data() noexcept { return m_data.data(); }
+    const_pointer data() const noexcept { return m_data.data(); }
 
-    auto end() noexcept {
-        return m_data.end();
-    }
+    auto begin() noexcept { return m_data.begin(); }
+    auto end() noexcept { return m_data.end(); }
+    auto begin() const noexcept { return m_data.begin(); }
+    auto end() const noexcept { return m_data.end(); }
 
-    auto begin() const noexcept {
-        return m_data.begin();
-    }
-
-    auto end() const noexcept {
-        return m_data.end();
-    }
-
-    size_type m_elems;
     array_type m_data;
 };
 

@@ -7,6 +7,7 @@
 
 #include <la/traits/expression_traits.hpp>
 #include <tuple>
+#include <algorithm>
 
 
 namespace la {
@@ -35,7 +36,7 @@ struct base_matrix_expression {
 namespace detail {
 template<typename operand>
 constexpr inline auto mat_subscript(const operand &a, std::size_t x, std::size_t y) {
-    if constexpr(detail::is_matrix_expr_v<operand>) {
+    if constexpr(detail::is_matrix_expr_v<std::decay_t<operand>>) {
         return a(x, y);
     } else {
         return a;
@@ -45,7 +46,7 @@ constexpr inline auto mat_subscript(const operand &a, std::size_t x, std::size_t
 
 template<typename operand>
 constexpr inline std::size_t mat_expr_rows(const operand &a) {
-    if constexpr(detail::is_matrix_expr_v<operand>) {
+    if constexpr(detail::is_matrix_expr_v<std::decay_t<operand>>) {
         return a.rows();
     } else {
         return 0;
@@ -55,7 +56,7 @@ constexpr inline std::size_t mat_expr_rows(const operand &a) {
 
 template<typename operand>
 constexpr inline std::size_t mat_expr_cols(const operand &a) {
-    if constexpr(detail::is_matrix_expr_v<operand>) {
+    if constexpr(detail::is_matrix_expr_v<std::decay_t<operand>>) {
         return a.cols();
     } else {
         return 0;
@@ -64,6 +65,8 @@ constexpr inline std::size_t mat_expr_cols(const operand &a) {
 
 } // namespace detail
 
+// operands encode their own storage: const T& for concrete types, T for lazy expressions.
+// The operators are responsible for selecting the right storage via detail::mat_operand_t.
 template<class operation, typename ... operands>
 struct matrix_expression
         : public base_matrix_expression<matrix_expression<operation, operands...>> {
@@ -72,19 +75,18 @@ struct matrix_expression
 
     matrix_expression() = default;
 
-    matrix_expression(const matrix_expression &) = delete;
+    constexpr matrix_expression(const matrix_expression &other) = default;
 
-    matrix_expression(matrix_expression &&other) : f(std::move(other.f)), args(other.args) {
-    }
+    constexpr matrix_expression(matrix_expression &&other) noexcept = default;
 
-    explicit matrix_expression(operation f_, operands const &... args_) : f(f_), args(args_...) {}
+    constexpr explicit matrix_expression(operation f_, const operands &... args_) : f(f_), args(args_...) {}
 
     constexpr matrix_expression &operator=(matrix_expression &&l) noexcept = default;
 
-    matrix_expression &operator=(matrix_expression const &l) noexcept = delete;
+    constexpr matrix_expression &operator=(matrix_expression const &l) = default;
 
     constexpr auto operator()(std::size_t x, std::size_t y) const {
-        return std::apply([this, x, y](operands const &... a) {
+        return std::apply([this, x, y](const auto &... a) {
             return f(detail::mat_subscript(a, x, y)...);
         }, args);
     }
@@ -95,7 +97,7 @@ struct matrix_expression
     }
 
     constexpr auto rows() const {
-        return std::apply([this](operands const &... x) {
+        return std::apply([this](const auto &... x) {
             std::size_t a{};
             ((a = std::max(a, static_cast<std::size_t>(detail::mat_expr_rows(x)))), ...);
             return a;
@@ -103,25 +105,30 @@ struct matrix_expression
     }
 
     constexpr auto cols() const {
-        return std::apply([this](operands const &... x) {
+        return std::apply([this](const auto &... x) {
             std::size_t a{};
             ((a = std::max(a, static_cast<std::size_t>(detail::mat_expr_cols(x)))), ...);
             return a;
         }, args);
     }
 
-    std::tuple<operands const &...> args;
     operation f;
+    std::tuple<operands...> args;
 };
 
 template<class T>
 struct transpose_expression : public base_matrix_expression<transpose_expression<T>> {
-    static_assert(detail::is_matrix_expr_v<T>);
+    static_assert(detail::is_matrix_expr_v<std::decay_t<T>>);
+
     constexpr transpose_expression &operator=(transpose_expression &&l) noexcept = default;
 
-    transpose_expression &operator=(transpose_expression const &l) noexcept = delete;
+    constexpr transpose_expression &operator=(transpose_expression const &l) = default;
 
-    transpose_expression(const T &_mat) : mat(_mat) {}
+    constexpr transpose_expression(const transpose_expression &) = default;
+
+    constexpr transpose_expression(transpose_expression &&) noexcept = default;
+
+    constexpr transpose_expression(const std::decay_t<T> &_mat) : mat(_mat) {}
 
     constexpr auto operator()(std::size_t x, std::size_t y) const {
         return mat(y, x);
@@ -140,7 +147,8 @@ struct transpose_expression : public base_matrix_expression<transpose_expression
         return mat.rows();
     }
 
-    const T &mat;
+    // Store by value for lazy expressions, by const ref for concrete types
+    T mat;
 };
 
 

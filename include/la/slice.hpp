@@ -5,6 +5,9 @@
 #ifndef LA_SLICE_HPP
 #define LA_SLICE_HPP
 
+#include <cstddef>
+#include <tuple>
+
 namespace la {
 
 template<typename T = std::size_t>
@@ -18,27 +21,27 @@ struct slice {
         }
     }
 
-    constexpr slice(const slice &) = default;
+    constexpr slice(const slice &) noexcept = default;
 
     constexpr slice(slice &&) noexcept = default;
 
-    bool operator==(const slice &rhs) const {
-        return std::tie(m_start, m_elems) == std::tie(rhs.m_start, rhs.m_elems);
+    constexpr bool operator==(const slice &rhs) const noexcept {
+        return m_start == rhs.m_start && m_elems == rhs.m_elems;
     }
 
-    bool operator!=(const slice &rhs) const {
-        return !(rhs == *this);
+    constexpr bool operator!=(const slice &rhs) const noexcept {
+        return !(*this == rhs);
     }
 
-    constexpr T size() noexcept {
+    constexpr T size() const noexcept {
         return m_elems;
     }
 
-    constexpr T end() noexcept {
+    constexpr T end() const noexcept {
         return m_start + m_elems;
     }
 
-    constexpr T start() noexcept {
+    constexpr T start() const noexcept {
         return m_start;
     }
 

@@ -1,7 +1,0 @@
-file(GLOB files "*.cpp")
-foreach(file ${files})
-    get_filename_component(source ${file} NAME_WE)
-    add_executable("test_${source}" ${file})
-    target_include_directories("test_${source}" INTERFACE ${PROJECT_SOURCE_DIR})
-    target_link_libraries("test_${source}" INTERFACE uBlas)
-endforeach()

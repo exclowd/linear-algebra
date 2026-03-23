@@ -5,6 +5,8 @@
 #ifndef LA_ENGINE_TRAITS_HPP
 #define LA_ENGINE_TRAITS_HPP
 
+#include <cstddef>
+#include <type_traits>
 namespace la {
 
 template<typename T>
@@ -23,7 +25,7 @@ struct fixed_vector_engine;
 
 namespace la::detail {
 
-/// @brief checks if type is a matrix_old
+/// @brief checks if type is a matrix
 template<typename T>
 struct is_static : std::false_type {
 };
@@ -44,7 +46,7 @@ using enable_if_static = typename std::enable_if_t<is_static_v<T>, bool>;
 
 
 
-/// @brief checks if type is a matrix_old
+/// @brief checks if type is a matrix
 template<typename T>
 struct is_dynamic : std::false_type {
 };

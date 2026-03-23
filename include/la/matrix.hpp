@@ -52,6 +52,12 @@ public:
     ~matrix() = default;
 
     /**
+     * Default constructor for fixed-size matrices (value-initializes all elements)
+     */
+    template<class Engine2 = engine_type, typename = detail::enable_if_static<Engine2>>
+    constexpr matrix() : data() {}
+
+    /**
      * default move constructor
      */
     constexpr matrix(matrix &&) noexcept = default;
@@ -320,16 +326,10 @@ zeros(std::size_t r, std::size_t c) {
 }
 
 template<typename T, std::size_t R, std::size_t C>
-inline decltype(auto) constexpr
-zeros(std::size_t n) {
-    auto &x = fmatrix<T, R, C>();
-    using size_type = typename decltype(x)::size_type;
-    for (size_type i{}; i < x.rows(); i++) {
-        for (size_type j{}; j < x.cols(); j++) {
-            x(i, j) = T{};
-        }
-    }
-    return x;
+inline constexpr auto
+zeros() {
+    // fixed_matrix_engine default constructor already value-initializes m_data
+    return fmatrix<T, R, C>();
 }
 
 } // namespace la

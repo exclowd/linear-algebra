@@ -118,4 +118,39 @@ inline constexpr bool is_matrix_expr_v = is_matrix_expr<T>::value;
 
 }  // namespace la::detail
 
+// Traits to identify lazy (non-owning) expression templates vs concrete types.
+// Lazy expressions must be stored by value to avoid dangling references when
+// chaining operations like (a + b) + c.
+namespace la::detail {
+
+template<typename T>
+struct is_lazy_matrix_expr : std::false_type {};
+
+template<class OP, typename ... operands>
+struct is_lazy_matrix_expr<matrix_expression<OP, operands...>> : std::true_type {};
+
+template<class T>
+struct is_lazy_matrix_expr<transpose_expression<T>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_lazy_matrix_expr_v = is_lazy_matrix_expr<T>::value;
+
+template<typename T>
+struct is_lazy_vector_expr : std::false_type {};
+
+template<class OP, typename ... operands>
+struct is_lazy_vector_expr<vector_expression<OP, operands...>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_lazy_vector_expr_v = is_lazy_vector_expr<T>::value;
+
+// Operand storage: lazy expressions by value, everything else by const reference
+template<typename T>
+using mat_operand_t = std::conditional_t<is_lazy_matrix_expr_v<T>, T, const T&>;
+
+template<typename T>
+using vec_operand_t = std::conditional_t<is_lazy_vector_expr_v<T>, T, const T&>;
+
+}  // namespace la::detail
+
 #endif  //LA_EXPRESSION_TRAITS_HPP

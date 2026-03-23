@@ -1,0 +1,7 @@
+file(GLOB files "*.cpp")
+foreach(file ${files})
+    get_filename_component(source ${file} NAME_WE)
+    add_executable("${source}" ${file})
+    target_link_libraries("${source}" PRIVATE la_include_directories)
+    target_compile_options("${source}" PRIVATE -O2)
+endforeach()

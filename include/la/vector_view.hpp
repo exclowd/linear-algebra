@@ -5,7 +5,9 @@
 #ifndef LA_VECTOR_VIEW_HPP
 #define LA_VECTOR_VIEW_HPP
 
+#include <la/detail/helper.hpp>
 #include <la/traits/read_write_traits.hpp>
+#include <algorithm>
 
 namespace la {
 
@@ -57,24 +59,26 @@ struct vector_view_engine {
             data(&engine), m_start{start}, m_elems{count} {
     }
 
-    constexpr vector_view_engine &operator=(vector_view_engine &&other) noexcept {
+    constexpr vector_view_engine &operator=(vector_view_engine &&other) {
         if (&other != this) {
-            check_engine_size(other, size());
+            detail::check_engine_size(other, size());
             std::copy(other.begin(), other.end(), begin());
         }
         return *this;
     }
 
-    constexpr vector_view_engine &operator=(const vector_view_engine &other) noexcept {
+    constexpr vector_view_engine &operator=(const vector_view_engine &other) {
         if (&other != this) {
-            check_engine_size(other, size());
+            detail::check_engine_size(other, size());
             std::copy(other.begin(), other.end(), begin());
         }
         return *this;
     }
 
     template<typename Engine2>
-    constexpr vector_view_engine &operator=(const Engine2& other) noexcept {
+    constexpr vector_view_engine &operator=(const Engine2& other) {
+        detail::check_engine_size(other, size());
+        detail::copy_vector_engine(*this, other);
         return *this;
     }
 
@@ -91,7 +95,7 @@ struct vector_view_engine {
     }
 
     [[nodiscard]] constexpr bool empty() const noexcept {
-        return m_elems != 0;
+        return m_elems == 0;
     }
 
     constexpr auto begin() noexcept {

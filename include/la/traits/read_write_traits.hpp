@@ -6,6 +6,7 @@
 #define LA_READ_WRITE_TRAITS_H
 
 #include <la/detail/tags.hpp>
+#include <type_traits>
 
 namespace la {
 

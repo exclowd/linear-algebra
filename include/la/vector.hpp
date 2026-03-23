@@ -62,6 +62,12 @@ public:
     ~vector() = default;
 
     /**
+     * Default constructor for fixed-size vectors (value-initializes all elements)
+     */
+    template<class Engine2 = engine_type, typename = detail::enable_if_static<Engine2>>
+    constexpr vector() : data() {}
+
+    /**
      * default move constructor
      */
     constexpr vector(vector &&) noexcept = default;
@@ -178,16 +184,16 @@ public:
     constexpr const_subvector_type
     operator()(slice_type slice) const {
         return const_subvector_type(detail::constructor_tag{}, data,
-                                    slice.first,
-                                    slice.second - slice.first);
+                                    slice.start(),
+                                    slice.size());
     }
 
 
     constexpr subvector_type
     operator()(slice_type slice) {
         return subvector_type(detail::constructor_tag{}, data,
-                              slice.first,
-                              slice.second - slice.first);
+                              slice.start(),
+                              slice.size());
     }
 
     constexpr const_reference operator[](size_type idx) const noexcept {
@@ -263,11 +269,10 @@ zeros(std::size_t n) {
 }
 
 template<typename T, std::size_t N>
-inline decltype(auto) constexpr
-zeros(std::size_t n) {
-    auto &x = fvector<T, N>();
-    std::fill(x.begin(), x.end(), T{});
-    return x;
+inline constexpr auto
+zeros() {
+    // fixed_vector_engine default constructor already value-initializes m_data
+    return fvector<T, N>();
 }
 
 } // namespace la

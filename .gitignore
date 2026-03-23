@@ -110,3 +110,5 @@ fabric.properties
 .history/
 .cache
 *build/
+
+compile_commands.json
